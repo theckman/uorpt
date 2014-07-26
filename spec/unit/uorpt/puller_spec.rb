@@ -243,12 +243,20 @@ describe UOrpt::Puller do
     end
   end
 
-  describe '.logs!' do
+  describe '.process_logs!' do
     it 'should accept no arguments'
 
     it 'should call .clear_logs!'
 
     it 'should call .populate_logs'
+
+    it 'should return nil'
+  end
+
+  describe '.logs!' do
+    it 'should accept no arguments'
+
+    it 'should call .process_logs!'
 
     it 'should call .results'
 
@@ -258,9 +266,7 @@ describe UOrpt::Puller do
   describe '.raw_logs!' do
     it 'should accept no arguments'
 
-    it 'should call .clear_logs!'
-
-    it 'should call .populate_logs'
+    it 'should call .process_logs!'
 
     it 'should call .results'
 

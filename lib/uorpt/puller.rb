@@ -22,14 +22,12 @@ module UOrpt
     end
 
     def logs!
-      clear_logs!
-      populate_logs
+      process_logs!
       results(@parsed_lines)
     end
 
     def raw_logs!
-      clear_logs!
-      populate_logs
+      process_logs!
       results(@raw_lines)
     end
 
@@ -55,6 +53,12 @@ module UOrpt
     def clear_logs!
       @raw_lines.clear
       @parsed_lines.clear
+      nil
+    end
+
+    def process_logs!
+      clear_logs!
+      populate_logs
       nil
     end
 
