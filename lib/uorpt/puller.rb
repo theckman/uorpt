@@ -14,7 +14,7 @@ module UOrpt
 
     attr_reader :raw_lines, :parsed_lines, :state, :url, :type
 
-    def initialize(url, cfg = {})
+    def initialize(url, cfg)
       set_opts(url, cfg)
       @lp = RMuh::RPT::Log::Parsers::UnitedOperationsLog.new(chat: true)
       @rp = RMuh::RPT::Log::Parsers::UnitedOperationsRPT.new
