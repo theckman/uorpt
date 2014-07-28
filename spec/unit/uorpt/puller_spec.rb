@@ -65,8 +65,8 @@ describe UOrpt::Puller do
 
     context 'should always' do
       it 'accept only two arguments' do
-        expect { puller.send(:validate_opts, nil) }.to raise_error ArgumentError
         expect { puller.send(:validate_opts, nil, nil, nil) }.to raise_error ArgumentError
+        expect { puller.send(:validate_opts, nil) }.to raise_error ArgumentError
       end
     end
 
@@ -107,8 +107,8 @@ describe UOrpt::Puller do
 
     context 'should always' do
       it 'accept only two arguments' do
-        expect { puller.send(:set_opts, nil, nil, nil) }.to raise_error ArgumentError
         expect { puller.send(:set_opts, nil) }.to raise_error ArgumentError
+        expect { puller.send(:set_opts, nil, nil, nil) }.to raise_error ArgumentError
       end
 
       subject { puller.send(:set_opts, @so_url, @so_cfg) }
@@ -173,13 +173,24 @@ describe UOrpt::Puller do
   end
 
   describe '.results' do
-    it 'accept only one arg'
+    before { puller.instance_variable_set(:@state, last_byte: 42) }
 
-    it 'should return a hash'
+    it 'accept only one arg' do
+      expect { puller.send(:results) }.to raise_error ArgumentError
+      expect { puller.send(:results, nil, nil) }.to raise_error ArgumentError
+    end
 
-    it 'should set the hash key :log to the argument provided'
+    subject { puller.send(:results, %i(ohai)) }
 
-    it 'should set the hash key :last_byte to the :last_byte from @state'
+    it { should be_an_instance_of Hash }
+
+    it 'should set the hash key :log to the argument provided' do
+      expect(subject[:log]).to eql %i(ohai)
+    end
+
+    it 'should set the hash key :last_byte to the :last_byte from @state' do
+      expect(subject[:last_byte]).to eql 42
+    end
   end
 
   describe '.pull_log' do
