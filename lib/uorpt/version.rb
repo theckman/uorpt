@@ -23,5 +23,5 @@
 
 # This is the namespace for the UnitedOperations RPT parsing tool
 module UOrpt
-  VERSION ||= '0.0.2'
+  VERSION ||= '0.0.3'
 end

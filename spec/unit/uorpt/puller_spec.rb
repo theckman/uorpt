@@ -274,20 +274,44 @@ describe UOrpt::Puller do
   end
 
   describe '.new' do
-    it 'should take one argument, with one optional argument'
+    before { allow(UOrpt::Puller).to receive(:set_opts).and_return(nil) }
 
-    it 'should call .set_opts'
+    it 'should take two arguments' do
+      expect { UOrpt::Puller.new(nil) }.to raise_error ArgumentError
+      expect { UOrpt::Puller.new(nil, nil, nil) }.to raise_error ArgumentError
+    end
 
-    it 'should call RMuh::RPT::Log::Parsers::UnitedOperationsLog.new'
+    it 'should call RMuh::RPT::Log::Parsers::UnitedOperationsLog.new' do
+      expect(RMuh::RPT::Log::Parsers::UnitedOperationsLog).to receive(:new).with(chat: true).and_return(nil)
+      _ = UOrpt::Puller.new('http://localhost/', type: :rpt)
+    end
 
-    it 'should set @lp to an instance of RMuh::RPT::Log::Parsers::UnitedOperationsLog'
+    it 'should set @lp to an instance of RMuh::RPT::Log::Parsers::UnitedOperationsLog' do
+      allow(RMuh::RPT::Log::Parsers::UnitedOperationsLog).to receive(:new).with(chat: true).and_return(:ohai)
+      p = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      expect(p.instance_variable_get(:@lp)).to eql :ohai
+    end
 
-    it 'should call RMuh::RPT::Log::Parsers::UnitedOperationsRPT.new'
+    it 'should call RMuh::RPT::Log::Parsers::UnitedOperationsRPT.new' do
+      expect(RMuh::RPT::Log::Parsers::UnitedOperationsRPT).to receive(:new).and_return(nil)
+      _ = UOrpt::Puller.new('http://localhost/', type: :rpt)
+    end
 
-    it 'should set @rp to an instance of RMuh::RPT::Log::Parsers::UnitedOperationsRPT'
+    it 'should set @rp to an instance of RMuh::RPT::Log::Parsers::UnitedOperationsRPT' do
+      allow(RMuh::RPT::Log::Parsers::UnitedOperationsRPT).to receive(:new).and_return(:hello)
+      p = UOrpt::Puller.new('http://localhost', type: :rpt)
+      expect(p.instance_variable_get(:@rp)).to eql :hello
+    end
 
-    it 'should call RMuh::RPT::Log::Fetch.new'
+    it 'should call RMuh::RPT::Log::Fetch.new' do
+      expect(RMuh::RPT::Log::Fetch).to receive(:new).with('http://localhost/', byte_start: 0)
+      _ = UOrpt::Puller.new('http://localhost/', type: :rpt)
+    end
 
-    it 'should set @fetcher to an instance of RMuh::RPT::Log::Fetch'
+    it 'should set @fetcher to an instance of RMuh::RPT::Log::Fetch' do
+      allow(RMuh::RPT::Log::Fetch).to receive(:new).with('http://localhost/', byte_start: 0).and_return(:ohai)
+      p = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      expect(p.instance_variable_get(:@fetcher)).to eql :ohai
+    end
   end
 end
