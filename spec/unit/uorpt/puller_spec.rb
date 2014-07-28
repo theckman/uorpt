@@ -255,13 +255,28 @@ describe UOrpt::Puller do
   end
 
   describe '.process_logs!' do
-    it 'should accept no arguments'
+    before do
+      allow(puller).to receive(:clear_logs!).and_return(nil)
+      allow(puller).to receive(:populate_logs).and_return(nil)
+    end
 
-    it 'should call .clear_logs!'
+    it 'should accept no arguments' do
+      expect { puller.send(:process_logs!, nil) }.to raise_error ArgumentError
+    end
 
-    it 'should call .populate_logs'
+    it 'should call .clear_logs!' do
+      expect(puller).to receive(:clear_logs!).and_return(nil)
+      puller.send(:process_logs!)
+    end
 
-    it 'should return nil'
+    it 'should call .populate_logs' do
+      expect(puller).to receive(:populate_logs).and_return(nil)
+      puller.send(:process_logs!)
+    end
+
+    it 'should return nil' do
+      expect(puller.send(:process_logs!)).to be_nil
+    end
   end
 
   describe '.logs!' do
