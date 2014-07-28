@@ -5,3 +5,5 @@ UOrpt
 [![Coveralls Coverage](https://img.shields.io/coveralls/theckman/uorpt/master.svg)](https://coveralls.io/r/theckman/uorpt)
 [![Code Climate](https://img.shields.io/codeclimate/github/theckman/uorpt.svg)](https://codeclimate.com/github/theckman/uorpt)
 [![Gemnasium](https://img.shields.io/gemnasium/theckman/uorpt.svg)](https://gemnasium.com/theckman/uorpt)
+
+This is a tool for parsing the [United Operations](http://forums.unitedoperations.net/) log files from the ArmA 2 game server. It's currently in development, with more documentation to come! Stay tuned.
