@@ -177,63 +177,143 @@ describe UOrpt::Puller do
   end
 
   describe '.pull_log' do
+    before do
+      @size = 42
+      @log = 'this is a log...'
+      @fetcher = double('Fetch', size: @size, :byte_end= => nil, log: @log)
+      puller.instance_variable_set(:@fetcher, @fetcher)
+    end
 
     context 'always' do
-      it 'should accept no args'
+      it 'should accept no args' do
+        expect { puller.send(:pull_log, nil) }.to raise_error ArgumentError
+      end
 
-      it 'should call @fetcher.size'
+      subject { puller.send(:pull_log) }
 
-      it 'should set @fetcher.byte_end'
+      it 'should call @fetcher.size' do
+        expect(@fetcher).to receive(:size).and_return(42)
+        subject
+      end
 
-      it 'call @fetcher.log'
+      it 'should set @fetcher.byte_end' do
+        expect(@fetcher).to receive(:byte_end=).and_return(nil)
+        subject
+      end
 
-      it 'should set @state[:last_byte] to the last byte of the log'
+      it 'call @fetcher.log' do
+        expect(@fetcher).to receive(:log).and_return(@log)
+        subject
+      end
 
-      it 'should return an instance of array'
+      it 'should set @state[:last_byte] to the last byte of the log' do
+        subject
+        b = puller.instance_variable_get(:@state)[:last_byte]
+        expect(b).to eq @size
+      end
 
-      it 'should return the contents of @fetcher.log'
+      it 'should return the contents of @fetcher.log' do
+        expect(subject).to eql @log
+      end
     end
 
     context 'when @state has :last_byte key' do
       # i.e., when we've pulled logs before
+      before do
+        @lb = 42
+        s = { last_byte: @lb }
+        puller.instance_variable_set(:@state, s)
+      end
 
-      it 'should set @fetcher.byte_start to val of @state[:last_byte]'
+      subject { puller.send(:pull_log) }
+
+      it 'should set @fetcher.byte_start to val of @state[:last_byte]' do
+        expect(@fetcher).to receive(:byte_start=).with(@lb).and_return(@lb)
+        subject
+      end
     end
   end
 
   describe '.parse_logs' do
+    before do
+      puller.instance_variable_set(:@raw_lines, ['ohai'])
+    end
+
     context 'should always' do
-      it 'should always accept no args'
+      it 'should always accept no args' do
+        expect { puller.send(:parse_logs, nil) }.to raise_error ArgumentError
+      end
     end
 
     context 'when @type is :rpt' do
-      it 'should call parse on the @rp obj'
+      before do
+        @rp = double('RPTParser', parse: :ohello)
+        puller.instance_variable_set(:@rp, @rp)
+        puller.instance_variable_set(:@type, :rpt)
+      end
 
-      it 'should return results of @rp.parse'
+      it 'should call parse on the @rp obj' do
+        expect(@rp).to receive(:parse).with(['ohai'])
+        puller.send(:parse_logs)
+      end
+
+      it 'should return results of @rp.parse' do
+        expect(puller.send(:parse_logs)).to eql :ohello
+      end
     end
 
     context 'when @type is :log' do
-      it 'should call parse on the @lp obj'
+      before do
+        @lp = double('LOGParser', parse: :ohai)
+        puller.instance_variable_set(:@lp, @lp)
+        puller.instance_variable_set(:@type, :log)
+      end
 
-      it 'should return results of @lp.parse'
+      it 'should call parse on the @lp obj' do
+        expect(@lp).to receive(:parse).with(['ohai'])
+        puller.send(:parse_logs)
+      end
+
+      it 'should return results of @lp.parse' do
+        expect(puller.send(:parse_logs)).to eql :ohai
+      end
     end
   end
 
   describe '.populate_logs' do
-    context 'always' do
-      it 'should take no args'
-
-      it 'should call .pull_log'
-
-      it 'should call parse_logs'
+    before do
+      @raw = ['ohai']
+      @parsed = [{ type: :log, message: 'ohai' }]
+      allow(puller).to receive(:pull_log).and_return(@raw)
+      allow(puller).to receive(:parse_logs).and_return(@parsed)
     end
 
-    context 'when @raw_lines contains ::RPT_MARKER' do
-      it 'should set @type to :rpt'
+    it 'should take no args' do
+      expect { puller.send(:populate_logs, nil) }.to raise_error ArgumentError
     end
 
-    context 'when @raw_lines does not contain ::RPT_MARKER' do
-      it 'should set @type to :log'
+    subject { puller.send(:populate_logs) }
+
+    it 'should call .pull_log' do
+      expect(puller).to receive(:pull_log).and_return(@raw)
+      subject
+    end
+
+    it 'should set @raw_lines to the return of .parse_logs' do
+      subject
+      i = puller.instance_variable_get(:@raw_lines)
+      expect(i).to eql @raw
+    end
+
+    it 'should call parse_logs' do
+      expect(puller).to receive(:parse_logs).and_return(@paraed)
+      subject
+    end
+
+    it 'should set @parsed_lines to the return of .parse_logs' do
+      subject
+      i = puller.instance_variable_get(:@parsed_lines)
+      expect(i).to eql @parsed
     end
   end
 
@@ -263,13 +343,31 @@ describe UOrpt::Puller do
   end
 
   describe '.logs!' do
-    it 'should accept no arguments'
+    before do
+      @results = { log: ['ohai'], last_byte: 32 }
+      allow(puller).to receive(:process_logs!).and_return(nil)
+      allow(puller).to receive(:results).and_return(@results)
+    end
 
-    it 'should call .process_logs!'
+    it 'should accept no arguments' do
+      expect { puller.logs!(nil) }.to raise_error ArgumentError
+    end
 
-    it 'should call .results'
+    subject { puller.logs! }
 
-    it 'should return the return of .results'
+    it 'should call .process_logs!' do
+      expect(puller).to receive(:process_logs!).and_return(nil)
+      subject
+    end
+
+    it 'should call .results' do
+      expect(puller).to receive(:results).and_return(@results)
+      subject
+    end
+
+    it 'should return the return of .results' do
+      expect(subject).to eql @results
+    end
   end
 
   describe '.raw_logs!' do
