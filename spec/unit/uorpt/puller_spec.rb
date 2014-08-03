@@ -290,13 +290,31 @@ describe UOrpt::Puller do
   end
 
   describe '.raw_logs!' do
-    it 'should accept no arguments'
+    before do
+      allow(puller).to receive(:process_logs!).and_return(nil)
+      puller.instance_variable_set(:@raw_lines, 'abc123')
+    end
 
-    it 'should call .process_logs!'
+    it 'should accept no arguments' do
+      expect { puller.raw_logs!(nil) }.to raise_error ArgumentError
+    end
 
-    it 'should call .results'
+    subject { puller.raw_logs! }
 
-    it 'should return the return of .results'
+    it 'should call .process_logs!' do
+      expect(puller).to receive(:process_logs!)
+      subject
+    end
+
+    it 'should call .results' do
+      expect(puller).to receive(:results).with('abc123').and_return(nil)
+      subject
+    end
+
+    it 'should return the return of .results' do
+      allow(puller).to receive(:results).and_return(:ohai)
+      expect(subject).to eql :ohai
+    end
   end
 
   describe '.new' do
