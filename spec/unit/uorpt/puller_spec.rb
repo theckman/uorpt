@@ -10,15 +10,7 @@ describe UOrpt::Puller do
     allow(RMuh::RPT::Log::Fetch).to receive(:new).and_return(fetcher)
   end
 
-  let(:puller) { UOrpt::Puller.new('http://localhost/', type: :rpt) }
-
-  describe '::RPT_MARKER' do
-    subject { UOrpt::Puller::RPT_MARKER }
-
-    it { should be_an_instance_of String }
-
-    it { should eql ' "############################# ' }
-  end
+  let(:puller) { UOrpt::Puller.new('http://localhost/', :rpt) }
 
   describe '::TYPES' do
     subject { UOrpt::Puller::TYPES }
@@ -60,7 +52,7 @@ describe UOrpt::Puller do
   describe '.validate_opts' do
     before(:each) do
       @vo_url = 'http://localhost/'
-      @vo_cfg = { type: :rpt }
+      @vo_type = :rpt
     end
 
     context 'should always' do
@@ -71,7 +63,7 @@ describe UOrpt::Puller do
     end
 
     context 'when passed in valid arguments' do
-      subject { puller.send(:validate_opts, @vo_url, @vo_cfg) }
+      subject { puller.send(:validate_opts, @vo_url, @vo_type) }
 
       it { should be_nil }
     end
@@ -81,17 +73,17 @@ describe UOrpt::Puller do
 
       it 'should raise ArgumentError' do
         expect do
-          puller.send(:validate_opts, @vo_url, @vo_cfg)
+          puller.send(:validate_opts, @vo_url, @vo_type)
         end.to raise_error ArgumentError
       end
     end
 
     context 'when passed config with invalid type' do
-      before { @vo_cfg = { type: :urmom } }
+      before { @vo_type = :urmom }
 
       it 'should raise ArgumentError' do
         expect do
-          puller.send(:validate_opts, @vo_url, @vo_cfg)
+          puller.send(:validate_opts, @vo_url, @vo_type)
         end.to raise_error ArgumentError
       end
     end
@@ -102,21 +94,22 @@ describe UOrpt::Puller do
 
     before(:each) do
       @so_url = 'http://localhost'
-      @so_cfg = { start_byte: 42, type: :rpt }
+      @so_type = :rpt
+      @so_cfg = { start_byte: 42 }
     end
 
     context 'should always' do
       it 'accept only two arguments' do
-        expect { puller.send(:set_opts, nil) }.to raise_error ArgumentError
-        expect { puller.send(:set_opts, nil, nil, nil) }.to raise_error ArgumentError
+        expect { puller.send(:set_opts, nil, nil) }.to raise_error ArgumentError
+        expect { puller.send(:set_opts, nil, nil, nil, nil) }.to raise_error ArgumentError
       end
 
-      subject { puller.send(:set_opts, @so_url, @so_cfg) }
+      subject { puller.send(:set_opts, @so_url, @so_type, @so_cfg) }
 
       it { should be_nil }
 
       it 'should call .validate_opts with url and cfg' do
-        expect(puller).to receive(:validate_opts).with(@so_url, @so_cfg).and_return(nil)
+        expect(puller).to receive(:validate_opts).with(@so_url, @so_type).and_return(nil)
         subject
       end
 
@@ -155,19 +148,9 @@ describe UOrpt::Puller do
       before { @so_cfg = {} }
 
       it 'should set @start_byte to 0' do
-        puller.send(:set_opts, @so_url, @so_cfg)
+        puller.send(:set_opts, @so_url, @so_type, @so_cfg)
         i = puller.instance_variable_get(:@start_byte)
         expect(i).to be_zero
-      end
-    end
-
-    context 'when :type not in cfg' do
-      before { @so_cfg = {} }
-
-      it 'should set @type to nil' do
-        puller.send(:set_opts, @so_url, @so_cfg)
-        i = puller.instance_variable_get(:@type)
-        expect(i).to be_nil
       end
     end
   end
@@ -309,34 +292,34 @@ describe UOrpt::Puller do
 
     it 'should call RMuh::RPT::Log::Parsers::UnitedOperationsLog.new' do
       expect(RMuh::RPT::Log::Parsers::UnitedOperationsLog).to receive(:new).with(chat: true).and_return(nil)
-      _ = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      _ = UOrpt::Puller.new('http://localhost/', :rpt)
     end
 
     it 'should set @lp to an instance of RMuh::RPT::Log::Parsers::UnitedOperationsLog' do
       allow(RMuh::RPT::Log::Parsers::UnitedOperationsLog).to receive(:new).with(chat: true).and_return(:ohai)
-      p = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      p = UOrpt::Puller.new('http://localhost/', :rpt)
       expect(p.instance_variable_get(:@lp)).to eql :ohai
     end
 
     it 'should call RMuh::RPT::Log::Parsers::UnitedOperationsRPT.new' do
       expect(RMuh::RPT::Log::Parsers::UnitedOperationsRPT).to receive(:new).and_return(nil)
-      _ = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      _ = UOrpt::Puller.new('http://localhost/', :rpt)
     end
 
     it 'should set @rp to an instance of RMuh::RPT::Log::Parsers::UnitedOperationsRPT' do
       allow(RMuh::RPT::Log::Parsers::UnitedOperationsRPT).to receive(:new).and_return(:hello)
-      p = UOrpt::Puller.new('http://localhost', type: :rpt)
+      p = UOrpt::Puller.new('http://localhost', :rpt)
       expect(p.instance_variable_get(:@rp)).to eql :hello
     end
 
     it 'should call RMuh::RPT::Log::Fetch.new' do
       expect(RMuh::RPT::Log::Fetch).to receive(:new).with('http://localhost/', byte_start: 0)
-      _ = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      _ = UOrpt::Puller.new('http://localhost/', :rpt)
     end
 
     it 'should set @fetcher to an instance of RMuh::RPT::Log::Fetch' do
       allow(RMuh::RPT::Log::Fetch).to receive(:new).with('http://localhost/', byte_start: 0).and_return(:ohai)
-      p = UOrpt::Puller.new('http://localhost/', type: :rpt)
+      p = UOrpt::Puller.new('http://localhost/', :rpt)
       expect(p.instance_variable_get(:@fetcher)).to eql :ohai
     end
   end

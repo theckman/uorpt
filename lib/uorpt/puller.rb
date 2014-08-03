@@ -10,12 +10,11 @@ module UOrpt
   #
   class Puller
     TYPES ||= %i(rpt log)
-    RPT_MARKER ||= ' "############################# '
 
     attr_reader :raw_lines, :parsed_lines, :state, :url, :type
 
-    def initialize(url, cfg)
-      set_opts(url, cfg)
+    def initialize(url, type, cfg = {})
+      set_opts(url, type, cfg)
       @lp = RMuh::RPT::Log::Parsers::UnitedOperationsLog.new(chat: true)
       @rp = RMuh::RPT::Log::Parsers::UnitedOperationsRPT.new
       @fetcher = RMuh::RPT::Log::Fetch.new(@url, byte_start: @start_byte)
@@ -33,19 +32,19 @@ module UOrpt
 
     private
 
-    def validate_opts(u, c)
+    def validate_opts(u, t)
       fail(ArgumentError, 'invalid format for URL') unless u =~ URI::ABS_URI
-      fail(ArgumentError, 'valid types are :rpt or :log') if !c.key?(:type) || !TYPES.include?(c[:type])
+      fail(ArgumentError, 'valid types are :rpt or :log') unless TYPES.include?(t)
       nil
     end
 
-    def set_opts(url, cfg)
-      validate_opts(url, cfg)
+    def set_opts(url, type, cfg)
+      validate_opts(url, type)
       @state = {}
       @raw_lines = []
       @parsed_lines = []
       @url = url
-      @type = cfg[:type]
+      @type = type
       @start_byte = cfg.fetch(:start_byte, 0).to_i
       nil
     end
@@ -76,9 +75,10 @@ module UOrpt
     end
 
     def parse_logs
-      if @type == :rpt
+      case @type
+      when :rpt
         @rp.parse(@raw_lines)
-      else
+      when :log
         @lp.parse(@raw_lines)
       end
     end
